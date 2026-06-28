@@ -29,6 +29,8 @@
         <ul id="menu">
             <li class="active" data-target="basics">JS 核心基礎</li>
             <li data-target="advanced">JS 進階概念</li>
+            <li data-target="modules">JS 模組化概念</li>
+            
         </ul>
     </nav>
 
@@ -86,6 +88,44 @@ console.log(ans.mulAns);</code></pre>
             <div class="interactive-box">
                 請問 <code>ans.mulAns</code> 的結果為何？<br>
                 <input type="text" id="ansAdv"> <button onclick="check('ansAdv', '15')">核對</button>
+            </div>
+        </section>
+
+        <section id="modules" class="content-section">
+            <h1>JS 模組化開發</h1>
+            <p>在 Node.js 中，透過 <code>import</code> 和 <code>export</code>，我們可以將程式拆解到不同的檔案中，讓程式碼更乾淨、更好維護。</p>
+
+            <h3>1. 檔案分工範例</h3>
+            <div style="display: flex; gap: 20px;">
+                <div style="flex: 1; background: #fff5f5; padding: 15px; border-radius: 8px; border: 1px solid #feb2b2;">
+                    <strong>[ lib.js ] (工具箱檔案)</strong>
+                    <pre><code>export const add = (n1, n2) => n1 + n2;
+export const mul = (n1, n2) => n1 * n2;
+export default "這是一個模組";</code></pre>
+                </div>
+                <div style="flex: 1; background: #f0fff4; padding: 15px; border-radius: 8px; border: 1px solid #9ae6b4;">
+                    <strong>[ main.js ] (主程式檔案)</strong>
+                    <pre><code>import { add, mul } from "./lib.js";
+console.log(add(3, 4)); // 7</code></pre>
+                </div>
+            </div>
+
+            <h3>2. Export 的三種實戰用法</h3>
+            <p>我們除了可以匯出物件，還可以自由決定要匯出什麼：</p>
+            <ul>
+                <li><b>具名匯出 (Named Export)</b>：使用 <code>export</code> 放在變數或函式前，一次可以匯出多個，匯入時必須用 <code>{ }</code>。</li>
+                <li><b>預設匯出 (Default Export)</b>：一個檔案只能有一個 <code>export default</code>。匯入時可以「自訂名稱」，不需要 <code>{ }</code>。</li>
+                <li><b>統一匯出</b>：在檔案最後統一整理要匯出的內容，這對大型專案管理最整潔。</li>
+            </ul>
+            <pre><code>// 統一匯出寫法
+const add = (a, b) => a + b;
+const mul = (a, b) => a * b;
+export { add, mul }; // 一次匯出多個</code></pre>
+
+            <h3>3. 互動練習</h3>
+            <div class="interactive-box">
+                請問如果我們在 lib.js 使用 <code>export default</code> 匯出資料，main.js 匯入時需要加上大括號 <code>{ }</code> 嗎？<br>
+                <input type="text" id="ansMod2"> <button onclick="check('ansMod2', '不需要')">核對</button>
             </div>
         </section>
     </main>
