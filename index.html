@@ -296,6 +296,10 @@
                 <span class="icon">📦</span> JS 模組化
                 <span class="badge">3</span>
             </li>
+            <li data-target="fs-practice">
+                <span class="icon">🗂️</span> node:fs 練習
+                <span class="badge">實作</span>
+            </li>
         </ul>
         <div class="nav-footer">Node.js & JavaScript 入門課程</div>
     </nav>
@@ -532,8 +536,363 @@ export { add, mul }; // 一次匯出多個</code></pre>
             </div>
         </section>
 
+        <!-- ── node:fs 練習 ── -->
+        <section id="fs-practice" class="content-section">
+            <div class="page-header">
+                <div class="page-eyebrow">Module 04 · 實作練習</div>
+                <h1>node:fs 檔案系統模組</h1>
+                <p>學習如何用 Node.js 內建的 <code>node:fs</code> 模組讀寫檔案。這是後端開發最常用的能力之一。</p>
+            </div>
+
+            <!-- STEP 1 -->
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">1</div>
+                    <h2>認識 node:fs — 什麼是檔案系統模組？</h2>
+                </div>
+                <p><code>node:fs</code> 是 Node.js 的內建模組，讓你可以在程式中操作電腦上的檔案，包含：寫入、讀取、刪除、重新命名等。</p>
+                <p>使用前需要先用 <code>import</code> 匯入，注意模組名稱是 <code>"node:fs"</code>（帶有 <code>node:</code> 前綴，這是現代 Node.js 的推薦寫法）：</p>
+                <pre><code>import { writeFileSync, readFileSync } from "node:fs";</code></pre>
+                <div class="quiz-box">
+                    <label>匯入 node:fs 時，模組名稱前綴應該寫什麼？</label>
+                    <div class="quiz-row">
+                        <input type="text" id="q_fs1" placeholder="例：node:">
+                        <button class="quiz-btn" onclick="check('q_fs1','node:','r_fs1')">核對</button>
+                        <span class="quiz-result" id="r_fs1"></span>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- STEP 2 -->
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">2</div>
+                    <h2>writeFileSync — 寫入檔案</h2>
+                </div>
+                <p><code>writeFileSync(檔名, 內容)</code> 會將字串寫入指定檔案。如果檔案不存在會自動建立；如果已存在，則會覆蓋原本內容。</p>
+                <pre><code>import { writeFileSync } from "node:fs";
+
+// 建立 data.txt 並寫入內容
+writeFileSync("data.txt", "測試文件");
+
+// 也可以加上編碼選項（預設就是 utf8）
+writeFileSync("data.txt", "Hello, Node.js!", { encoding: "utf8" });</code></pre>
+                <div class="fs-callout">
+                    <span class="callout-icon">💡</span>
+                    <div>
+                        <b>Sync 是什麼意思？</b><br>
+                        函式名稱結尾的 <code>Sync</code> 代表「同步（Synchronous）」。程式會<b>等待</b>檔案寫完才繼續往下執行。相對的，<code>writeFile()</code>（非同步版）不會等待，需要用 callback 或 Promise 處理。
+                    </div>
+                </div>
+                <div class="quiz-box">
+                    <label><code>writeFileSync</code> 若目標檔案已存在，會發生什麼事？</label>
+                    <div class="quiz-row">
+                        <input type="text" id="q_fs2" placeholder="覆蓋 / 報錯 / 略過">
+                        <button class="quiz-btn" onclick="check('q_fs2','覆蓋','r_fs2')">核對</button>
+                        <span class="quiz-result" id="r_fs2"></span>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- STEP 3 -->
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">3</div>
+                    <h2>readFileSync — 讀取檔案</h2>
+                </div>
+                <p><code>readFileSync(檔名, 編碼)</code> 讀取並回傳檔案內容。一定要指定 <code>"utf8"</code> 編碼，否則會回傳原始的 Buffer（二進位格式），不是你想要的文字。</p>
+                <pre><code>import { readFileSync } from "node:fs";
+
+// 讀取 data.txt，回傳字串
+const content = readFileSync("data.txt", "utf8");
+
+console.log(content); // 印出檔案內容</code></pre>
+                <div class="quiz-box">
+                    <label><code>readFileSync</code> 沒有指定 <code>"utf8"</code> 時，回傳的是什麼型態？</label>
+                    <div class="quiz-row">
+                        <input type="text" id="q_fs3" placeholder="輸入答案">
+                        <button class="quiz-btn" onclick="check('q_fs3','Buffer','r_fs3')">核對</button>
+                        <span class="quiz-result" id="r_fs3"></span>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- STEP 4 — Full example -->
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">4</div>
+                    <h2>完整範例 — 寫入後再讀取</h2>
+                </div>
+                <p>把前面學到的合在一起：先寫入一個檔案，再讀回來印出。這就是你範例程式碼的完整流程：</p>
+                <pre><code>import { writeFileSync, readFileSync } from "node:fs";
+
+// ① 寫入檔案（建立 data.txt）
+writeFileSync("data.txt", "測試文件");
+
+// ② 讀取剛才寫的檔案
+const content = readFileSync("data.txt", "utf8");
+
+// ③ 印出內容
+console.log(content); // → 測試文件</code></pre>
+                <div class="quiz-box">
+                    <label>執行上方程式後，<code>console.log(content)</code> 會印出什麼？</label>
+                    <div class="quiz-row">
+                        <input type="text" id="q_fs4" placeholder="輸入答案">
+                        <button class="quiz-btn" onclick="check('q_fs4','測試文件','r_fs4')">核對</button>
+                        <span class="quiz-result" id="r_fs4"></span>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- STEP 5 — Error handling -->
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">5</div>
+                    <h2>錯誤處理 — try / catch</h2>
+                </div>
+                <p><code>Sync</code> 系列函式在發生錯誤時（例如讀取不存在的檔案）會直接拋出例外（throw an Error），所以需要用 <code>try...catch</code> 包住，避免程式崩潰。</p>
+                <pre><code>import { readFileSync } from "node:fs";
+
+try {
+    // 嘗試讀取一個不存在的檔案
+    const content = readFileSync("notfound.txt", "utf8");
+    console.log(content);
+} catch (err) {
+    // 捕捉錯誤，印出錯誤訊息
+    console.log("讀取失敗：", err.message);
+    // → 讀取失敗：ENOENT: no such file or directory, open 'notfound.txt'
+}</code></pre>
+                <div class="fs-callout warn">
+                    <span class="callout-icon">⚠️</span>
+                    <div>
+                        <b>ENOENT 是什麼？</b><br>
+                        這是 Node.js 的錯誤代碼，代表 <b>E</b>rror <b>NO</b> <b>ENT</b>ry（找不到檔案或目錄）。這是讀取不存在的檔案時最常見的錯誤。
+                    </div>
+                </div>
+                <div class="quiz-box">
+                    <label>讀取不存在的檔案時，Node.js 會拋出什麼錯誤代碼？</label>
+                    <div class="quiz-row">
+                        <input type="text" id="q_fs5" placeholder="輸入答案">
+                        <button class="quiz-btn" onclick="check('q_fs5','ENOENT','r_fs5')">核對</button>
+                        <span class="quiz-result" id="r_fs5"></span>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- STEP 6 — Interactive simulator -->
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">6</div>
+                    <h2>🧪 互動模擬器 — 在瀏覽器裡練習 fs</h2>
+                </div>
+                <p>瀏覽器無法直接執行 Node.js，但我們用記憶體模擬一個虛擬檔案系統，讓你在這裡練習 <code>writeFileSync</code> 和 <code>readFileSync</code> 的邏輯。</p>
+
+                <div class="simulator">
+                    <div class="sim-toolbar">
+                        <span class="sim-label">📁 虛擬檔案系統</span>
+                        <button class="sim-clear-btn" onclick="simClear()">清空所有檔案</button>
+                    </div>
+                    <div class="sim-files" id="simFiles">
+                        <span class="sim-empty">（尚無檔案）</span>
+                    </div>
+
+                    <div class="sim-panels">
+                        <!-- Write panel -->
+                        <div class="sim-panel">
+                            <div class="sim-panel-title">✍️ writeFileSync</div>
+                            <div class="sim-row">
+                                <label>檔名</label>
+                                <input type="text" id="sim_filename" placeholder="data.txt" value="data.txt">
+                            </div>
+                            <div class="sim-row">
+                                <label>內容</label>
+                                <textarea id="sim_content" rows="3" placeholder="測試文件">測試文件</textarea>
+                            </div>
+                            <button class="quiz-btn" onclick="simWrite()">執行 writeFileSync</button>
+                        </div>
+
+                        <!-- Read panel -->
+                        <div class="sim-panel">
+                            <div class="sim-panel-title">📖 readFileSync</div>
+                            <div class="sim-row">
+                                <label>檔名</label>
+                                <input type="text" id="sim_readname" placeholder="data.txt" value="data.txt">
+                            </div>
+                            <div class="sim-row">
+                                <label>編碼</label>
+                                <select id="sim_encoding">
+                                    <option value="utf8">utf8（回傳字串）</option>
+                                    <option value="none">未指定（回傳 Buffer）</option>
+                                </select>
+                            </div>
+                            <button class="quiz-btn" onclick="simRead()">執行 readFileSync</button>
+                        </div>
+                    </div>
+
+                    <!-- Console -->
+                    <div class="sim-console-label">🖥️ console.log 輸出</div>
+                    <div class="sim-console" id="simConsole">
+                        <span class="con-hint">// 執行操作後，結果會顯示在這裡</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 </div>
+
+<style>
+    /* ── fs callout ── */
+    .fs-callout {
+        display: flex; gap: 12px; align-items: flex-start;
+        background: #e8f0fe; border-left: 4px solid #1a73e8;
+        border-radius: 0 var(--radius) var(--radius) 0;
+        padding: 14px 16px; margin: 16px 0; font-size: 14px; color: #202124;
+    }
+    .fs-callout.warn { background: #fef7e0; border-color: #f9ab00; }
+    .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Simulator ── */
+    .simulator {
+        background: #f8f9fa; border: 1px solid #dadce0;
+        border-radius: var(--radius); overflow: hidden; margin-top: 10px;
+    }
+    .sim-toolbar {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 10px 16px; background: #1a73e8; color: white;
+        font-size: 13px; font-weight: 600;
+    }
+    .sim-clear-btn {
+        background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4);
+        color: white; padding: 4px 10px; border-radius: 4px; cursor: pointer;
+        font-size: 12px;
+    }
+    .sim-clear-btn:hover { background: rgba(255,255,255,0.3); }
+    .sim-files {
+        padding: 10px 16px; min-height: 36px; display: flex; gap: 8px; flex-wrap: wrap;
+        border-bottom: 1px solid #dadce0; background: white; align-items: center;
+    }
+    .sim-empty { font-size: 13px; color: #9aa0a6; font-style: italic; }
+    .sim-file-tag {
+        background: #e8f0fe; color: #1a73e8; font-size: 12px; font-weight: 600;
+        padding: 3px 10px; border-radius: 12px; border: 1px solid #c5d8fc;
+    }
+    .sim-panels {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+        border-bottom: 1px solid #dadce0;
+    }
+    .sim-panel {
+        padding: 16px; border-right: 1px solid #dadce0;
+    }
+    .sim-panel:last-child { border-right: none; }
+    .sim-panel-title { font-size: 13px; font-weight: 700; color: #202124; margin-bottom: 12px; }
+    .sim-row { margin-bottom: 10px; }
+    .sim-row label { display: block; font-size: 12px; color: #5f6368; margin-bottom: 4px; font-weight: 500; }
+    .sim-row input, .sim-row textarea, .sim-row select {
+        width: 100%; padding: 7px 10px; border: 1px solid #dadce0;
+        border-radius: 6px; font-size: 13px; font-family: var(--font-mono);
+        background: white; color: #202124; outline: none;
+        transition: border-color 0.15s;
+    }
+    .sim-row input:focus, .sim-row textarea:focus, .sim-row select:focus { border-color: #1a73e8; }
+    .sim-row textarea { resize: vertical; font-family: var(--font-mono); }
+    .sim-console-label { padding: 8px 16px 4px; font-size: 12px; color: #5f6368; font-weight: 500; }
+    .sim-console {
+        background: #202124; color: #e8eaf6; font-family: var(--font-mono);
+        font-size: 13px; padding: 14px 16px; min-height: 80px;
+        line-height: 1.7; border-radius: 0 0 var(--radius) var(--radius);
+    }
+    .con-hint { color: #5f6368; }
+    .con-ok { color: #34a853; }
+    .con-err { color: #ea4335; }
+    .con-buf { color: #fbbc04; }
+
+    @media (max-width: 600px) {
+        .sim-panels { grid-template-columns: 1fr; }
+        .sim-panel { border-right: none; border-bottom: 1px solid #dadce0; }
+    }
+</style>
+
+<script>
+    // ── Virtual filesystem ──
+    const vfs = {};
+
+    function simLog(msg, cls = '') {
+        const el = document.getElementById('simConsole');
+        el.innerHTML = `<span class="${cls}">${msg}</span>`;
+    }
+
+    function simRenderFiles() {
+        const el = document.getElementById('simFiles');
+        const keys = Object.keys(vfs);
+        if (keys.length === 0) {
+            el.innerHTML = '<span class="sim-empty">（尚無檔案）</span>';
+        } else {
+            el.innerHTML = keys.map(k => `<span class="sim-file-tag">📄 ${k}</span>`).join('');
+        }
+    }
+
+    function simWrite() {
+        const filename = document.getElementById('sim_filename').value.trim();
+        const content = document.getElementById('sim_content').value;
+        if (!filename) { simLog('⚠️ 請輸入檔名', 'con-err'); return; }
+        const existed = filename in vfs;
+        vfs[filename] = content;
+        simRenderFiles();
+        simLog(
+            `> writeFileSync("${filename}", "${content.substring(0,30)}${content.length>30?'...':''}")\n`
+            + (existed ? `✅ 檔案已覆蓋：${filename}` : `✅ 檔案已建立：${filename}`),
+            'con-ok'
+        );
+    }
+
+    function simRead() {
+        const filename = document.getElementById('sim_readname').value.trim();
+        const encoding = document.getElementById('sim_encoding').value;
+        if (!filename) { simLog('⚠️ 請輸入檔名', 'con-err'); return; }
+        if (!(filename in vfs)) {
+            simLog(
+                `> readFileSync("${filename}", "utf8")\n`
+                + `❌ 錯誤：ENOENT: no such file or directory, open '${filename}'\n`
+                + `（提示：請先用 writeFileSync 建立這個檔案）`,
+                'con-err'
+            );
+            return;
+        }
+        const content = vfs[filename];
+        if (encoding === 'none') {
+            const fakeBuffer = '<Buffer ' + [...content].map(c => c.charCodeAt(0).toString(16).padStart(2,'0')).slice(0,8).join(' ') + (content.length > 8 ? ' ...' : '') + '>';
+            simLog(
+                `> readFileSync("${filename}")\n`
+                + `📦 回傳 Buffer（未指定編碼）：\n${fakeBuffer}\n`
+                + `（提示：加上 "utf8" 才能得到可讀文字）`,
+                'con-buf'
+            );
+        } else {
+            simLog(
+                `> readFileSync("${filename}", "utf8")\n`
+                + `✅ console.log(content)\n→ ${content}`,
+                'con-ok'
+            );
+        }
+    }
+
+    function simClear() {
+        Object.keys(vfs).forEach(k => delete vfs[k]);
+        simRenderFiles();
+        simLog('// 所有虛擬檔案已清除', 'con-hint');
+    }
+</script>
 
 <script>
     // ── Nav switching ──
