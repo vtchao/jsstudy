@@ -2,151 +2,590 @@
 <html lang="zh-Hant-TW">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Node.js & JS 學習中心</title>
     <style>
-        :root { --accent-color: #0071e3; --sidebar-color: #f5f5f7; --code-bg: #f5f5f5; }
-        body { font-family: -apple-system, sans-serif; display: flex; margin: 0; height: 100vh; }
-        
-        /* 左側導覽 */
-        nav { width: 280px; background: var(--sidebar-color); padding: 40px 20px; border-right: 1px solid #d2d2d7; flex-shrink: 0; }
-        nav ul { list-style: none; padding: 0; }
-        nav li { padding: 12px 15px; cursor: pointer; border-radius: 8px; transition: 0.3s; color: #1d1d1f; margin-bottom: 5px; }
-        nav li:hover { background: #e8e8ed; }
-        nav li.active { background: var(--accent-color); color: white; }
-        
-        /* 右側展示 */
-        main { flex: 1; padding: 60px 80px; overflow-y: auto; line-height: 1.6; }
+        /* ── Token System ── */
+        :root {
+            --bg: #ffffff;
+            --surface: #f8f9fa;
+            --surface-2: #e8f0fe;
+            --border: #dadce0;
+            --accent: #1a73e8;
+            --accent-glow: #e8f0fe;
+            --accent-2: #1558b0;
+            --success: #188038;
+            --danger: #d93025;
+            --text: #202124;
+            --text-dim: #5f6368;
+            --code-bg: #f8f9fa;
+            --code-border: #dadce0;
+            --nav-width: 260px;
+            --radius: 8px;
+            --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.7;
+        }
+
+        /* ── Header (mobile only) ── */
+        .top-bar {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .top-bar .logo { font-weight: 700; font-size: 15px; color: var(--accent); letter-spacing: 0.02em; }
+        .hamburger {
+            background: none; border: 1px solid var(--border);
+            border-radius: 6px; padding: 6px 9px; cursor: pointer; color: var(--text);
+            font-size: 16px; line-height: 1; background: white;
+        }
+
+        /* ── Layout ── */
+        .app { display: flex; min-height: 100vh; }
+
+        /* ── Sidebar ── */
+        nav {
+            width: var(--nav-width);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 32px 16px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        .nav-logo {
+            font-size: 13px; font-weight: 600;
+            color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase;
+            margin-bottom: 6px; padding: 0 8px;
+        }
+        .nav-title {
+            font-size: 20px; font-weight: 700; color: var(--text);
+            margin-bottom: 28px; padding: 0 8px;
+        }
+        nav ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+        nav li {
+            padding: 11px 14px; cursor: pointer;
+            border-radius: var(--radius); color: var(--text-dim);
+            font-size: 14px; font-weight: 500;
+            transition: background 0.15s, color 0.15s;
+            display: flex; align-items: center; gap: 10px;
+        }
+        nav li:hover { background: var(--surface-2); color: var(--text); }
+        nav li.active { background: var(--accent-glow); color: var(--accent); }
+        nav li .icon { font-size: 16px; flex-shrink: 0; }
+        nav li .badge {
+            margin-left: auto; font-size: 11px; background: var(--surface-2);
+            padding: 2px 7px; border-radius: 20px; color: var(--text-dim);
+        }
+        nav li.active .badge { background: rgba(108,142,255,0.2); color: var(--accent); }
+        .nav-footer {
+            margin-top: auto; padding: 12px 8px 0;
+            border-top: 1px solid var(--border);
+            font-size: 12px; color: var(--text-dim);
+        }
+
+        /* ── Main Content ── */
+        main {
+            flex: 1; padding: 52px 64px;
+            max-width: 860px;
+            overflow-y: auto;
+        }
         .content-section { display: none; }
-        .content-section.active { display: block; }
-        pre { background: var(--code-bg); padding: 15px; border-radius: 8px; font-family: monospace; border: 1px solid #e0e0e0; }
-        .interactive-box { background: #fff; border: 1px solid #d2d2d7; padding: 20px; border-radius: 12px; margin: 15px 0; }
-        button { background: var(--accent-color); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        .content-section.active { display: block; animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ── Page Header ── */
+        .page-header { margin-bottom: 44px; }
+        .page-eyebrow {
+            font-size: 12px; font-weight: 600; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+        }
+        .page-header h1 {
+            font-size: 32px; font-weight: 800; color: var(--text);
+            letter-spacing: -0.02em; line-height: 1.2;
+        }
+        .page-header p {
+            margin-top: 12px; color: var(--text-dim); font-size: 16px; max-width: 560px;
+        }
+
+        /* ── Topic Cards ── */
+        .topic { margin-bottom: 40px; }
+        .topic-header {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+        }
+        .topic-num {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--accent-glow); border: 1px solid rgba(108,142,255,0.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; color: var(--accent); flex-shrink: 0;
+        }
+        .topic h2 {
+            font-size: 18px; font-weight: 700; color: var(--text);
+        }
+        .topic p { color: var(--text-dim); font-size: 15px; margin-bottom: 14px; }
+        .topic code {
+            font-family: var(--font-mono); font-size: 13px;
+            background: var(--code-bg); border: 1px solid var(--code-border);
+            padding: 1px 6px; border-radius: 4px; color: var(--accent-2);
+        }
+
+        /* ── Code Block ── */
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--code-border);
+            padding: 20px 22px;
+            border-radius: var(--radius);
+            font-family: var(--font-mono);
+            font-size: 13.5px;
+            line-height: 1.7;
+            color: #202124;
+            overflow-x: auto;
+            position: relative;
+            margin-bottom: 14px;
+        }
+        pre .comment { color: #80868b; }
+        pre .kw { color: var(--accent); }
+        pre .str { color: #188038; }
+        pre .fn { color: var(--accent-2); }
+
+        /* ── Interactive Box ── */
+        .quiz-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .quiz-box label { font-size: 14px; color: var(--text-dim); flex: 1 1 200px; }
+        .quiz-box code {
+            font-family: var(--font-mono); font-size: 13px;
+            background: var(--code-bg); border: 1px solid var(--code-border);
+            padding: 1px 6px; border-radius: 4px; color: var(--accent-2);
+        }
+        .quiz-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .quiz-box input[type="text"] {
+            background: #fff; border: 1px solid var(--border);
+            color: var(--text); padding: 8px 12px; border-radius: 6px;
+            font-family: var(--font-mono); font-size: 13px;
+            outline: none; width: 120px; transition: border-color 0.2s;
+        }
+        .quiz-box input:focus { border-color: var(--accent); }
+        .quiz-btn {
+            background: var(--accent); color: #fff;
+            border: none; padding: 8px 16px; border-radius: 6px;
+            cursor: pointer; font-size: 13px; font-weight: 600;
+            transition: opacity 0.15s, transform 0.1s;
+        }
+        .quiz-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+        .quiz-result {
+            font-size: 13px; font-weight: 600; padding: 5px 10px;
+            border-radius: 6px; display: none;
+        }
+        .quiz-result.ok { background: rgba(52,211,153,0.12); color: var(--success); display: inline-block; }
+        .quiz-result.fail { background: rgba(248,113,113,0.12); color: var(--danger); display: inline-block; }
+
+        /* ── Two-column code panels ── */
+        .code-cols {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;
+        }
+        .code-panel {
+            background: var(--code-bg); border: 1px solid var(--code-border);
+            border-radius: var(--radius); overflow: hidden;
+        }
+        .code-panel-header {
+            padding: 8px 14px; border-bottom: 1px solid var(--code-border);
+            font-size: 12px; font-weight: 600; color: var(--text-dim);
+            font-family: var(--font-mono); display: flex; align-items: center; gap: 8px;
+        }
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot-red { background: #f87171; }
+        .dot-grn { background: #34d399; }
+        .dot-ylw { background: #fbbf24; }
+        .code-panel pre { border: none; border-radius: 0; margin: 0; }
+
+        /* ── List ── */
+        .styled-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .styled-list li {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 12px 16px;
+            font-size: 14px; color: var(--text-dim);
+            border-left: 3px solid var(--accent);
+        }
+        .styled-list li b { color: var(--text); }
+
+        /* ── Divider ── */
+        .divider { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+
+        /* ── Overlay (mobile nav) ── */
+        .overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6); z-index: 98;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            main { padding: 36px 32px; }
+            .code-cols { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 680px) {
+            .top-bar { display: flex; }
+            .app { flex-direction: column; }
+            nav {
+                position: fixed; top: 0; left: 0;
+                height: 100vh; z-index: 99;
+                transform: translateX(-100%);
+                padding-top: 64px;
+            }
+            nav.open { transform: translateX(0); }
+            .overlay.open { display: block; }
+            main { padding: 24px 20px; max-width: 100%; }
+            .page-header h1 { font-size: 24px; }
+            pre { font-size: 12.5px; padding: 16px; }
+            .quiz-box { flex-direction: column; align-items: flex-start; }
+        }
     </style>
 </head>
 <body>
-    <nav>
-        <h2>學習目錄</h2>
+
+<!-- Mobile top bar -->
+<div class="top-bar">
+    <span class="logo">JS LEARN</span>
+    <button class="hamburger" id="hamburger" aria-label="開啟選單">☰</button>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="app">
+    <nav id="nav">
+        <div class="nav-logo">JS Learn</div>
+        <div class="nav-title">學習中心</div>
         <ul id="menu">
-            <li class="active" data-target="basics">JS 核心基礎</li>
-            <li data-target="advanced">JS 進階概念</li>
-            <li data-target="modules">JS 模組化概念</li>
-            
+            <li class="active" data-target="basics">
+                <span class="icon">⚡</span> JS 核心基礎
+                <span class="badge">4</span>
+            </li>
+            <li data-target="advanced">
+                <span class="icon">🚀</span> JS 進階概念
+                <span class="badge">3</span>
+            </li>
+            <li data-target="modules">
+                <span class="icon">📦</span> JS 模組化
+                <span class="badge">3</span>
+            </li>
         </ul>
+        <div class="nav-footer">Node.js & JavaScript 入門課程</div>
     </nav>
 
     <main id="content">
+
+        <!-- ── 基礎 ── -->
         <section id="basics" class="content-section active">
-            <h1>JavaScript 核心邏輯基礎</h1>
-            
-            <h2>1. 變數與資料型態</h2>
-            <p>變數是存放資料的容器。<code>let</code> 可變動，<code>const</code> 不可變動。<br>常見型態：數字 (Number)、字串 (String)、布林 (Boolean)。</p>
-            <pre><code>let score = 80;
+            <div class="page-header">
+                <div class="page-eyebrow">Module 01</div>
+                <h1>JavaScript 核心基礎</h1>
+                <p>掌握變數、流程控制、函式與物件，是所有 JS 開發的起點。</p>
+            </div>
+
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">1</div>
+                    <h2>變數與資料型態</h2>
+                </div>
+                <p>變數是存放資料的容器。<code>let</code> 可重新賦值；<code>const</code> 宣告後不可更改。常見型態包含數字（Number）、字串（String）與布林（Boolean）。</p>
+                <pre><code>let score = 80;
 score = 90;
 console.log(score);</code></pre>
-            <div class="interactive-box">預測輸出結果：<input type="text" id="ans1"> <button onclick="check('ans1', '90')">核對</button></div>
+                <div class="quiz-box">
+                    <label>預測 <code>console.log(score)</code> 的輸出：</label>
+                    <div class="quiz-row">
+                        <input type="text" id="ans1" placeholder="輸入答案">
+                        <button class="quiz-btn" onclick="check('ans1','90','r1')">核對</button>
+                        <span class="quiz-result" id="r1"></span>
+                    </div>
+                </div>
+            </div>
 
-            <h2>2. 流程控制 (判斷式與迴圈)</h2>
-            <p><code>if...else</code> 用來處理條件分支；<code>for</code> 迴圈用來處理重複的工作。</p>
-            <pre><code>let i = 0;
-if(i > 0) { console.log("A"); } else { console.log("B"); }</code></pre>
-            <div class="interactive-box">預測輸出結果：<input type="text" id="ans2"> <button onclick="check('ans2', 'B')">核對</button></div>
+            <hr class="divider">
 
-            <h2>3. 函式 (Functions)</h2>
-            <p>函式將程式碼打包，透過 <code>( )</code> 傳入參數，並由 <code>return</code> 回傳結果。</p>
-            <pre><code>const multiply = (a) => { return a * 2; };
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">2</div>
+                    <h2>流程控制</h2>
+                </div>
+                <p><code>if...else</code> 處理條件分支；<code>for</code> 迴圈處理重複工作。條件為 false 時執行 else 區塊。</p>
+                <pre><code>let i = 0;
+if (i > 0) { console.log("A"); }
+else       { console.log("B"); }</code></pre>
+                <div class="quiz-box">
+                    <label>上方程式輸出什麼？</label>
+                    <div class="quiz-row">
+                        <input type="text" id="ans2" placeholder="輸入答案">
+                        <button class="quiz-btn" onclick="check('ans2','B','r2')">核對</button>
+                        <span class="quiz-result" id="r2"></span>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">3</div>
+                    <h2>函式</h2>
+                </div>
+                <p>函式將程式碼打包成可重複呼叫的單元，透過 <code>( )</code> 傳入參數，以 <code>return</code> 回傳結果。</p>
+                <pre><code>const multiply = (a) => { return a * 2; };
 console.log(multiply(5));</code></pre>
-            <div class="interactive-box">預測輸出結果：<input type="text" id="ans3"> <button onclick="check('ans3', '10')">核對</button></div>
+                <div class="quiz-box">
+                    <label><code>multiply(5)</code> 回傳值為？</label>
+                    <div class="quiz-row">
+                        <input type="text" id="ans3" placeholder="輸入答案">
+                        <button class="quiz-btn" onclick="check('ans3','10','r3')">核對</button>
+                        <span class="quiz-result" id="r3"></span>
+                    </div>
+                </div>
+            </div>
 
-            <h2>4. 物件 (Object)</h2>
-            <p>物件使用 <code>{ }</code> 包裹，由「鍵 (Key)」與「值 (Value)」組成。</p>
-            <pre><code>let car = { color: "Red" };
+            <hr class="divider">
+
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">4</div>
+                    <h2>物件</h2>
+                </div>
+                <p>物件用 <code>{ }</code> 包裹，由「鍵（Key）」與「值（Value）」組成，透過 <code>.</code> 存取屬性。</p>
+                <pre><code>let car = { color: "Red" };
 console.log(car.color);</code></pre>
-            <div class="interactive-box">預測輸出結果：<input type="text" id="ans4"> <button onclick="check('ans4', 'Red')">核對</button></div>
+                <div class="quiz-box">
+                    <label><code>car.color</code> 的值是？</label>
+                    <div class="quiz-row">
+                        <input type="text" id="ans4" placeholder="輸入答案">
+                        <button class="quiz-btn" onclick="check('ans4','Red','r4')">核對</button>
+                        <span class="quiz-result" id="r4"></span>
+                    </div>
+                </div>
+            </div>
         </section>
 
+        <!-- ── 進階 ── -->
         <section id="advanced" class="content-section">
-            <h1>JS 進階概念</h1>
-            <h3>1. 函式的三種寫法</h3>
-            <pre><code>// 傳統寫法
-function add(n1, n2){ return n1 + n2; }
-// 變數指定
-let add2 = function(n1, n2){ return n1 + n2; };
-// 箭頭函式
-const add3 = (n1, n2) => { return n1 + n2; };</code></pre>
+            <div class="page-header">
+                <div class="page-eyebrow">Module 02</div>
+                <h1>JS 進階概念</h1>
+                <p>了解函式的多種寫法，以及如何利用物件傳遞與回傳複雜資料。</p>
+            </div>
 
-            <h3>2. JSON 與參數物件傳遞</h3>
-            <pre><code>function multiply(args){ return args.n1 * args.n2; }
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">1</div>
+                    <h2>函式的三種寫法</h2>
+                </div>
+                <p>JavaScript 提供三種定義函式的方式，結果相同但語法不同。選擇哪種風格因情境而異。</p>
+                <pre><code>// 傳統宣告式
+function add(n1, n2) { return n1 + n2; }
+
+// 函式表達式
+let add2 = function(n1, n2) { return n1 + n2; };
+
+// 箭頭函式（現代首選）
+const add3 = (n1, n2) => { return n1 + n2; };</code></pre>
+            </div>
+
+            <hr class="divider">
+
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">2</div>
+                    <h2>JSON 與參數物件傳遞</h2>
+                </div>
+                <p>將多個參數包進物件再傳入函式，讓呼叫端更清晰易讀，也方便未來新增欄位。</p>
+                <pre><code>function multiply(args) { return args.n1 * args.n2; }
+
 let ans = multiply({ n1: 3, n2: 5 });
 console.log(ans); // 15</code></pre>
+            </div>
 
-            <h3>3. 物件打包多個回傳值</h3>
-            <pre><code>function addAndMultiply(args){
-    return { addAns: args.n1 + args.n2, mulAns: args.n1 * args.n2 };
+            <hr class="divider">
+
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">3</div>
+                    <h2>物件打包多個回傳值</h2>
+                </div>
+                <p>JavaScript 函式只能 <code>return</code> 一個值，但可以把多個結果打包成物件一次回傳。</p>
+                <pre><code>function addAndMultiply(args) {
+    return {
+        addAns: args.n1 + args.n2,
+        mulAns: args.n1 * args.n2
+    };
 }
 let ans = addAndMultiply({ n1: 3, n2: 5 });
 console.log(ans.mulAns);</code></pre>
-            <div class="interactive-box">
-                請問 <code>ans.mulAns</code> 的結果為何？<br>
-                <input type="text" id="ansAdv"> <button onclick="check('ansAdv', '15')">核對</button>
+                <div class="quiz-box">
+                    <label><code>ans.mulAns</code> 的結果為何？</label>
+                    <div class="quiz-row">
+                        <input type="text" id="ansAdv" placeholder="輸入答案">
+                        <button class="quiz-btn" onclick="check('ansAdv','15','rAdv')">核對</button>
+                        <span class="quiz-result" id="rAdv"></span>
+                    </div>
+                </div>
             </div>
         </section>
 
+        <!-- ── 模組 ── -->
         <section id="modules" class="content-section">
-            <h1>JS 模組化開發</h1>
-            <p>在 Node.js 中，透過 <code>import</code> 和 <code>export</code>，我們可以將程式拆解到不同的檔案中，讓程式碼更乾淨、更好維護。</p>
+            <div class="page-header">
+                <div class="page-eyebrow">Module 03</div>
+                <h1>JS 模組化開發</h1>
+                <p>透過 <code>import</code> 與 <code>export</code>，將程式拆解至不同檔案，讓專案結構更乾淨。</p>
+            </div>
 
-            <h3>1. 檔案分工範例</h3>
-            <div style="display: flex; gap: 20px;">
-                <div style="flex: 1; background: #fff5f5; padding: 15px; border-radius: 8px; border: 1px solid #feb2b2;">
-                    <strong>[ lib.js ] (工具箱檔案)</strong>
-                    <pre><code>export const add = (n1, n2) => n1 + n2;
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">1</div>
+                    <h2>檔案分工範例</h2>
+                </div>
+                <p>一個檔案負責定義工具函式並匯出，另一個主程式檔案匯入後使用。</p>
+                <div class="code-cols">
+                    <div class="code-panel">
+                        <div class="code-panel-header">
+                            <span class="dot dot-red"></span>
+                            <span class="dot dot-ylw"></span>
+                            <span class="dot dot-grn"></span>
+                            lib.js — 工具函式
+                        </div>
+                        <pre><code>export const add = (n1, n2) => n1 + n2;
 export const mul = (n1, n2) => n1 * n2;
 export default "這是一個模組";</code></pre>
-                </div>
-                <div style="flex: 1; background: #f0fff4; padding: 15px; border-radius: 8px; border: 1px solid #9ae6b4;">
-                    <strong>[ main.js ] (主程式檔案)</strong>
-                    <pre><code>import { add, mul } from "./lib.js";
+                    </div>
+                    <div class="code-panel">
+                        <div class="code-panel-header">
+                            <span class="dot dot-red"></span>
+                            <span class="dot dot-ylw"></span>
+                            <span class="dot dot-grn"></span>
+                            main.js — 主程式
+                        </div>
+                        <pre><code>import { add, mul } from "./lib.js";
 console.log(add(3, 4)); // 7</code></pre>
+                    </div>
                 </div>
             </div>
 
-            <h3>2. Export 的三種實戰用法</h3>
-            <p>我們除了可以匯出物件，還可以自由決定要匯出什麼：</p>
-            <ul>
-                <li><b>具名匯出 (Named Export)</b>：使用 <code>export</code> 放在變數或函式前，一次可以匯出多個，匯入時必須用 <code>{ }</code>。</li>
-                <li><b>預設匯出 (Default Export)</b>：一個檔案只能有一個 <code>export default</code>。匯入時可以「自訂名稱」，不需要 <code>{ }</code>。</li>
-                <li><b>統一匯出</b>：在檔案最後統一整理要匯出的內容，這對大型專案管理最整潔。</li>
-            </ul>
-            <pre><code>// 統一匯出寫法
+            <hr class="divider">
+
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">2</div>
+                    <h2>Export 的三種用法</h2>
+                </div>
+                <ul class="styled-list">
+                    <li><b>具名匯出（Named Export）</b>：<code>export</code> 放在變數或函式前，可匯出多個，匯入時需加 <code>{ }</code>。</li>
+                    <li><b>預設匯出（Default Export）</b>：一個檔案只能有一個 <code>export default</code>，匯入時可自訂名稱，不需 <code>{ }</code>。</li>
+                    <li><b>統一匯出</b>：在檔案底部統一整理所有要匯出的項目，大型專案首選。</li>
+                </ul>
+                <pre><code>// 統一匯出寫法（推薦用於大型專案）
 const add = (a, b) => a + b;
 const mul = (a, b) => a * b;
-export { add, mul }; // 一次匯出多個</code></pre>
 
-            <h3>3. 互動練習</h3>
-            <div class="interactive-box">
-                請問如果我們在 lib.js 使用 <code>export default</code> 匯出資料，main.js 匯入時需要加上大括號 <code>{ }</code> 嗎？<br>
-                <input type="text" id="ansMod2"> <button onclick="check('ansMod2', '不需要')">核對</button>
+export { add, mul }; // 一次匯出多個</code></pre>
+            </div>
+
+            <hr class="divider">
+
+            <div class="topic">
+                <div class="topic-header">
+                    <div class="topic-num">3</div>
+                    <h2>互動練習</h2>
+                </div>
+                <div class="quiz-box">
+                    <label>使用 <code>export default</code> 匯出資料時，匯入端需要加上大括號 <code>{ }</code> 嗎？</label>
+                    <div class="quiz-row">
+                        <input type="text" id="ansMod2" placeholder="需要 / 不需要">
+                        <button class="quiz-btn" onclick="check('ansMod2','不需要','rMod2')">核對</button>
+                        <span class="quiz-result" id="rMod2"></span>
+                    </div>
+                </div>
             </div>
         </section>
+
     </main>
+</div>
 
-    <script>
-        // 切換邏輯
-        const menuItems = document.querySelectorAll('#menu li');
-        const sections = document.querySelectorAll('.content-section');
-        menuItems.forEach(item => {
-            item.addEventListener('click', () => {
-                menuItems.forEach(i => i.classList.remove('active'));
-                sections.forEach(s => s.classList.remove('active'));
-                item.classList.add('active');
-                document.getElementById(item.getAttribute('data-target')).classList.add('active');
-            });
+<script>
+    // ── Nav switching ──
+    const menuItems = document.querySelectorAll('#menu li');
+    const sections = document.querySelectorAll('.content-section');
+    const nav = document.getElementById('nav');
+    const overlay = document.getElementById('overlay');
+    const hamburger = document.getElementById('hamburger');
+
+    menuItems.forEach(item => {
+        item.addEventListener('click', () => {
+            menuItems.forEach(i => i.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
+            item.classList.add('active');
+            document.getElementById(item.getAttribute('data-target')).classList.add('active');
+            // close on mobile
+            nav.classList.remove('open');
+            overlay.classList.remove('open');
         });
+    });
 
-        function check(id, correct) {
-            const val = document.getElementById(id).value;
-            alert(val.trim() === correct ? "答對了！" : "再試一次，答案應該是 " + correct);
+    hamburger.addEventListener('click', () => {
+        nav.classList.toggle('open');
+        overlay.classList.toggle('open');
+    });
+    overlay.addEventListener('click', () => {
+        nav.classList.remove('open');
+        overlay.classList.remove('open');
+    });
+
+    // ── Quiz checker ──
+    function check(inputId, correct, resultId) {
+        const val = document.getElementById(inputId).value.trim();
+        const el = document.getElementById(resultId);
+        if (val === correct) {
+            el.textContent = '✓ 答對了！';
+            el.className = 'quiz-result ok';
+        } else {
+            el.textContent = `✗ 答案是 ${correct}，再試試！`;
+            el.className = 'quiz-result fail';
         }
-    </script>
+    }
+
+    // Allow Enter key to submit
+    document.querySelectorAll('.quiz-box input').forEach(input => {
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const btn = input.nextElementSibling;
+                if (btn && btn.classList.contains('quiz-btn')) btn.click();
+            }
+        });
+    });
+</script>
 </body>
 </html>
