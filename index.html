@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>Node.js & JS 學習中心</title>
+    <style>
+        :root { --accent-color: #0071e3; --sidebar-color: #f5f5f7; --code-bg: #f5f5f5; }
+        body { font-family: -apple-system, sans-serif; display: flex; margin: 0; height: 100vh; }
+        
+        /* 左側導覽 */
+        nav { width: 280px; background: var(--sidebar-color); padding: 40px 20px; border-right: 1px solid #d2d2d7; flex-shrink: 0; }
+        nav ul { list-style: none; padding: 0; }
+        nav li { padding: 12px 15px; cursor: pointer; border-radius: 8px; transition: 0.3s; color: #1d1d1f; margin-bottom: 5px; }
+        nav li:hover { background: #e8e8ed; }
+        nav li.active { background: var(--accent-color); color: white; }
+        
+        /* 右側展示 */
+        main { flex: 1; padding: 60px 80px; overflow-y: auto; line-height: 1.6; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        pre { background: var(--code-bg); padding: 15px; border-radius: 8px; font-family: monospace; border: 1px solid #e0e0e0; }
+        .interactive-box { background: #fff; border: 1px solid #d2d2d7; padding: 20px; border-radius: 12px; margin: 15px 0; }
+        button { background: var(--accent-color); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <nav>
+        <h2>學習目錄</h2>
+        <ul id="menu">
+            <li class="active" data-target="basics">JS 核心基礎</li>
+            <li data-target="advanced">JS 進階概念</li>
+        </ul>
+    </nav>
+
+    <main id="content">
+        <section id="basics" class="content-section active">
+            <h1>JavaScript 核心邏輯基礎</h1>
+            
+            <h2>1. 變數與資料型態</h2>
+            <p>變數是存放資料的容器。<code>let</code> 可變動，<code>const</code> 不可變動。<br>常見型態：數字 (Number)、字串 (String)、布林 (Boolean)。</p>
+            <pre><code>let score = 80;
+score = 90;
+console.log(score);</code></pre>
+            <div class="interactive-box">預測輸出結果：<input type="text" id="ans1"> <button onclick="check('ans1', '90')">核對</button></div>
+
+            <h2>2. 流程控制 (判斷式與迴圈)</h2>
+            <p><code>if...else</code> 用來處理條件分支；<code>for</code> 迴圈用來處理重複的工作。</p>
+            <pre><code>let i = 0;
+if(i > 0) { console.log("A"); } else { console.log("B"); }</code></pre>
+            <div class="interactive-box">預測輸出結果：<input type="text" id="ans2"> <button onclick="check('ans2', 'B')">核對</button></div>
+
+            <h2>3. 函式 (Functions)</h2>
+            <p>函式將程式碼打包，透過 <code>( )</code> 傳入參數，並由 <code>return</code> 回傳結果。</p>
+            <pre><code>const multiply = (a) => { return a * 2; };
+console.log(multiply(5));</code></pre>
+            <div class="interactive-box">預測輸出結果：<input type="text" id="ans3"> <button onclick="check('ans3', '10')">核對</button></div>
+
+            <h2>4. 物件 (Object)</h2>
+            <p>物件使用 <code>{ }</code> 包裹，由「鍵 (Key)」與「值 (Value)」組成。</p>
+            <pre><code>let car = { color: "Red" };
+console.log(car.color);</code></pre>
+            <div class="interactive-box">預測輸出結果：<input type="text" id="ans4"> <button onclick="check('ans4', 'Red')">核對</button></div>
+        </section>
+
+        <section id="advanced" class="content-section">
+            <h1>JS 進階概念</h1>
+            <h3>1. 函式的三種寫法</h3>
+            <pre><code>// 傳統寫法
+function add(n1, n2){ return n1 + n2; }
+// 變數指定
+let add2 = function(n1, n2){ return n1 + n2; };
+// 箭頭函式
+const add3 = (n1, n2) => { return n1 + n2; };</code></pre>
+
+            <h3>2. JSON 與參數物件傳遞</h3>
+            <pre><code>function multiply(args){ return args.n1 * args.n2; }
+let ans = multiply({ n1: 3, n2: 5 });
+console.log(ans); // 15</code></pre>
+
+            <h3>3. 物件打包多個回傳值</h3>
+            <pre><code>function addAndMultiply(args){
+    return { addAns: args.n1 + args.n2, mulAns: args.n1 * args.n2 };
+}
+let ans = addAndMultiply({ n1: 3, n2: 5 });
+console.log(ans.mulAns);</code></pre>
+            <div class="interactive-box">
+                請問 <code>ans.mulAns</code> 的結果為何？<br>
+                <input type="text" id="ansAdv"> <button onclick="check('ansAdv', '15')">核對</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 切換邏輯
+        const menuItems = document.querySelectorAll('#menu li');
+        const sections = document.querySelectorAll('.content-section');
+        menuItems.forEach(item => {
+            item.addEventListener('click', () => {
+                menuItems.forEach(i => i.classList.remove('active'));
+                sections.forEach(s => s.classList.remove('active'));
+                item.classList.add('active');
+                document.getElementById(item.getAttribute('data-target')).classList.add('active');
+            });
+        });
+
+        function check(id, correct) {
+            const val = document.getElementById(id).value;
+            alert(val.trim() === correct ? "答對了！" : "再試一次，答案應該是 " + correct);
+        }
+    </script>
+</body>
+</html>
